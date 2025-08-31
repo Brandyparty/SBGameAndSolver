@@ -1,0 +1,149 @@
+<html>
+<body>
+	<table id="gameField">
+	</table>
+	
+	<p id="dataResponse"></p>
+	<button>Calculate Solution(s)</button>
+<script>
+	let lastElement = false;
+	let activeElements = 999;
+	let gameField = [];
+
+
+	function startGameAndCalculations() {
+		buildGameField();
+	}
+	
+	function buildGameField() {
+		let gameFieldElement = document.getElementById("gameField");
+		let rowCount = 5;
+		let columnCount = 4;
+		let emptyFields = [[true]];
+		
+		activeElements = rowCount * columnCount - emptyFields.length;
+		
+		//make fieldset
+		for (let i = 0; i < rowCount; i++) {
+			gameField[i] = [];
+			for (let j = 0; j < columnCount; j++) {
+				gameField[i][j] = true;
+			}
+		}
+		
+		//remove empty fields
+		for (let i = 0; i < emptyFields.length; i++) {
+			for (let j = 0; j < emptyFields[i].length; j++) {
+				gameField[i][j] = false;
+			}
+		}
+		
+		//build the field
+		for (let i = 0; i < rowCount; i++) {
+			let rowElement = document.createElement("tr");
+			for (let j = 0; j < columnCount; j++) {
+				let cellElement = document.createElement("td");
+				cellElement.id = i + ":" + j;
+				cellElement.addEventListener("click", function(e) {
+					clickHandling(e.srcElement.id);
+				});
+				if (gameField[i][j]) {
+					cellElement.innerHTML = "o";
+				} else {
+					cellElement.innerHTML = "_";
+				}
+				
+				rowElement.append(cellElement);
+			}
+			gameFieldElement.append(rowElement);
+		}
+	}
+	
+	function clickHandling(id) {
+		if (lastElement != false) {
+			let lastDimensions = lastElement.split(":");
+			let currentDimensions = id.split(":");
+			lastDimensions[0] = parseInt(lastDimensions[0]);
+			lastDimensions[1] = parseInt(lastDimensions[1]);
+			currentDimensions[0] = parseInt(currentDimensions[0]);
+			currentDimensions[1] = parseInt(currentDimensions[1]);
+			
+			//check if move is not valid
+			if (
+				gameField[currentDimensions[0]][currentDimensions[1]] || 
+				!gameField[lastDimensions[0]][lastDimensions[1]]
+			) {
+				lastElement = id;
+			} else {
+				
+				let directions = ["above", "right", "below", "left"];
+				for (let d = 0; d < directions.length; d++) {
+					if (checkDimensionsOnMove(currentDimensions, lastDimensions, directions[d])) {
+						console.log("checked");
+						doMove(currentDimensions, lastDimensions, directions[d]);
+						
+						//check winning
+						if (activeElements == 1) {
+							alert("you won!");
+						}
+						
+						return;
+					}
+				}
+			}
+		}
+		
+		lastElement = id;
+	}
+	
+	function checkDimensionsOnMove(currentDimensions, lastDimensions, direction) {
+		let [xModifier, yModifier] = getModifiers(direction);
+		
+		if (
+			currentDimensions[0] == lastDimensions[0] + yModifier &&
+			currentDimensions[1] == lastDimensions[1] + xModifier &&
+			typeof(gameField[currentDimensions[0] - yModifier / 2][currentDimensions[1] - xModifier / 2]) !== "undefined" &&
+			gameField[currentDimensions[0] - yModifier / 2][currentDimensions[1] - xModifier / 2]
+		) {
+			return true;
+		}
+		return false;
+	}
+	
+	function getModifiers(direction) {
+		let yModifier = 0;
+		let xModifier = 0;
+		
+		switch(direction) {
+			case "above":
+					yModifier = -2;
+				break;
+			case "below":
+					yModifier = 2;
+				break;
+			case "left":
+					xModifier = -2;
+				break;
+			case "right":
+					xModifier = 2;
+				break;
+		}
+		return [xModifier, yModifier];
+	}
+	
+	function doMove(currentDimensions, lastDimensions, direction) {
+		let [xModifier, yModifier] = getModifiers(direction);
+		
+		gameField[currentDimensions[0]][currentDimensions[1]] = true;
+		document.getElementById(currentDimensions[0] + ":" + currentDimensions[1]).innerHTML = "o";
+		gameField[lastDimensions[0]][lastDimensions[1]] = false;
+		document.getElementById(lastDimensions[0] + ":" + lastDimensions[1]).innerHTML = "_";
+		gameField[currentDimensions[0] - yModifier / 2][currentDimensions[1] - xModifier / 2] = false;
+		document.getElementById((currentDimensions[0] - yModifier / 2) + ":" + (currentDimensions[1] - xModifier / 2)).innerHTML = "_";
+		activeElements--;
+	}
+	
+	startGameAndCalculations();
+</script>
+</body>
+</html>
