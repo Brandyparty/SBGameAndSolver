@@ -4,10 +4,13 @@
 	</table>
 	
 	<p id="dataResponse"></p>
-	<button>Calculate Solution(s)</button>
+	<button onclick="calculateSolutions()">Calculate Solution(s)</button>
 <script>
 	let lastElement = false;
 	let activeElements = 999;
+	let rowCount = 5;
+	let columnCount = 4;
+	let emptyFields = [[true]];
 	let gameField = [];
 
 
@@ -17,10 +20,6 @@
 	
 	function buildGameField() {
 		let gameFieldElement = document.getElementById("gameField");
-		let rowCount = 5;
-		let columnCount = 4;
-		let emptyFields = [[true]];
-		
 		activeElements = rowCount * columnCount - emptyFields.length;
 		
 		//make fieldset
@@ -39,8 +38,21 @@
 		}
 		
 		//build the field
+		let rowElement = document.createElement("tr");
 		for (let i = 0; i < rowCount; i++) {
-			let rowElement = document.createElement("tr");
+			let header = document.createElement("td");
+			header.innerHTML = i - 1;
+			if (i == 0) {
+				header.innerHTML = "-";
+			}
+			rowElement.append(header);
+		}
+		gameFieldElement.append(rowElement);
+		for (let i = 0; i < rowCount; i++) {
+			rowElement = document.createElement("tr");
+			let header = document.createElement("td");
+			header.innerHTML = i;
+			rowElement.append(header);
 			for (let j = 0; j < columnCount; j++) {
 				let cellElement = document.createElement("td");
 				cellElement.id = i + ":" + j;
@@ -68,7 +80,7 @@
 			currentDimensions[0] = parseInt(currentDimensions[0]);
 			currentDimensions[1] = parseInt(currentDimensions[1]);
 			
-			//check if move is not valid
+			//check if move is invalid
 			if (
 				gameField[currentDimensions[0]][currentDimensions[1]] || 
 				!gameField[lastDimensions[0]][lastDimensions[1]]
@@ -144,6 +156,74 @@
 	}
 	
 	startGameAndCalculations();
+	
+	
+	function calculateSolutions() {
+		console.log("calculating...");
+		activeElements = rowCount * columnCount - emptyFields.length;
+		
+		//make gameField - copied ( no time for clean code :( )
+		let calculationField = [];
+		
+		//make fieldset
+		for (let i = 0; i < rowCount; i++) {
+			calculationField[i] = [];
+			for (let j = 0; j < columnCount; j++) {
+				calculationField[i][j] = true;
+			}
+		}
+		//remove empty fields
+		for (let i = 0; i < emptyFields.length; i++) {
+			for (let j = 0; j < emptyFields[i].length; j++) {
+				calculationField[i][j] = false;
+			}
+		}
+		
+		doCalculations(calculationField, activeElements, []);
+	}
+	
+	function doCalculations(field, active, moves) {
+		if (active == 1) {
+			console.log(moves);
+		} else {
+			//check for field that is a valid moving target (so false)
+			for (let i = 0; i < field.length; i++) {
+				for (let j = 0; j < field[i].length; j++) {
+					if (!field[i][j]) {
+						calculateMoves(field, active, moves, i, j);
+					}
+				}
+			}
+		}
+	}
+	
+	function calculateMoves(field, active, moves, i, j) {
+		let directions = [
+			[-2, 0],
+			[0, -2],
+			[2, 0],
+			[0, 2]
+		];
+		for (let d = 0; d < directions.length; d++) {
+			if (
+				typeof(field[i + directions[d][0]]) !== "undefined" && 
+				typeof(field[i + directions[d][0]][j + directions[d][1]]) !== "undefined" && 
+				field[i + directions[d][0]][j + directions[d][1]] && 
+				typeof(field[i + directions[d][0] / 2]) !== "undefined" && 
+				typeof(field[i + directions[d][0] / 2][j + directions[d][1] / 2]) !== "undefined" && 
+				field[i + directions[d][0] / 2][j + directions[d][1] / 2]
+			) {
+				let newField = JSON.parse(JSON.stringify(field));
+				let newActive = active - 1;
+				let newMoves = JSON.parse(JSON.stringify(moves));
+				newField[i][j] = true;
+				newField[i + directions[d][0] / 2][j + directions[d][1] / 2] = false;
+				newField[i + directions[d][0]][j + directions[d][1]] = false;
+				newMoves.push((i + directions[d][0]) + ":" + (j + directions[d][1]) + " TO " + i + ":" + j);
+				doCalculations(newField, newActive, newMoves);
+			}
+		}
+	}
 </script>
 </body>
 </html>
