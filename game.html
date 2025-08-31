@@ -5,6 +5,7 @@
 	
 	<p id="dataResponse"></p>
 	<button onclick="calculateSolutions()">Calculate Solution(s)</button>
+	<button onclick="showSolution()">Show a Solution</button>
 <script>
 	let lastElement = false;
 	let activeElements = 999;
@@ -91,7 +92,6 @@
 				let directions = ["above", "right", "below", "left"];
 				for (let d = 0; d < directions.length; d++) {
 					if (checkDimensionsOnMove(currentDimensions, lastDimensions, directions[d])) {
-						console.log("checked");
 						doMove(currentDimensions, lastDimensions, directions[d]);
 						
 						//check winning
@@ -222,6 +222,86 @@
 				newMoves.push((i + directions[d][0]) + ":" + (j + directions[d][1]) + " TO " + i + ":" + j);
 				doCalculations(newField, newActive, newMoves);
 			}
+		}
+	}
+	
+	
+	
+	function showSolution() {
+		let moves = [
+			['2:0', '0:0'],
+			['1:2', '1:0'],
+			['3:1', '1:1'],
+			['3:2', '1:2'],
+			['0:2', '2:2'],
+			['4:0', '2:0'],
+			['0:0', '0:2'],
+			['0:3', '0:1'],
+			['4:2', '4:0'],
+			['1:0', '3:0'],
+			['2:3', '2:1'],
+			['4:3', '2:3'],
+			['4:0', '2:0'],
+			['2:0', '2:2'],
+			['1:3', '3:3'],
+			['0:1', '2:1'],
+			['2:1', '2:3'],
+			['3:3', '1:3']
+		]; 
+ 		
+		let currentDelay = 0;
+		
+		for (let m = 0; m < moves.length; m++) {
+			let sourceElement = document.getElementById(moves[m][0]);
+			let targetElement = document.getElementById(moves[m][1]);
+			
+			let x = 999;
+			let y = 999;
+			if (parseInt(moves[m][0].split(":")[0]) != parseInt(moves[m][1].split(":")[0])) {
+				y = parseInt(moves[m][0].split(":")[1]);
+				let values = [parseInt(moves[m][0].split(":")[0]), parseInt(moves[m][1].split(":")[0])].sort();
+				x = values[0] + 1;
+			} else {
+				x = parseInt(moves[m][0].split(":")[0]);
+				let values = [parseInt(moves[m][0].split(":")[1]), parseInt(moves[m][1].split(":")[1])].sort();
+				y = values[0] + 1;
+			}
+			
+			let inbetweenElement = document.getElementById(x + ":" + y);
+			
+			const animationSource = [
+				{ background: "#0000FF" }
+			];
+			const animationTarget = [
+				{ background: "#00FF00" }
+			];
+			const animationInBetween = [
+				{ background: "#FF0000" }
+			];
+
+			const animationTiming = {
+			  duration: 1000,
+			  delay: currentDelay,
+			  iterations: 1,
+			};
+			
+			sourceElement.style.setProperty("animation-delay", "1s");
+					
+			let sourceAnimation = sourceElement.animate(animationSource, animationTiming);
+			let targetAnimation = targetElement.animate(animationTarget, animationTiming);
+			let inbetweenAnimation = inbetweenElement.animate(animationInBetween, animationTiming);
+			
+			sourceAnimation.finished.then(() => {
+			  sourceElement.innerHTML = "_";
+			});
+			targetAnimation.finished.then(() => {
+			  targetElement.innerHTML = "o";
+			});
+			inbetweenAnimation.finished.then(() => {
+			  inbetweenElement.innerHTML = "_";
+			});
+			
+			currentDelay += 1000;
 		}
 	}
 </script>
